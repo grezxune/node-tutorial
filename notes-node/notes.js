@@ -2,13 +2,29 @@ console.log('Starting notes.js');
 
 const fs = require('fs');
 
-var addNote = (title, body) => {
+var fetchNotes = (callback) => {
   fs.readFile('notes-data.json', 'utf8', (err, data) => {
     var notes = [];
     if (data) {
       notes = JSON.parse(data);
     }
 
+    callback(notes);
+  });
+};
+
+var saveNotes = (notes, callback) => {
+  fs.writeFile('notes-data.json', JSON.stringify(notes), (err) => {
+    if (err) {
+      throw err;
+    } else {
+      callback(true);
+    }
+  });
+};
+
+var addNote = (title, body, callback) => {
+  fetchNotes((notes) => {
     var note = {
       title: title,
       body: body
@@ -20,77 +36,56 @@ var addNote = (title, body) => {
 
     if (duplicateNotes.length <= 0) {
       notes.push(note);
-
-      fs.writeFile('notes-data.json', JSON.stringify(notes), (err) => {
-        if (err) {
-          throw err;
-        } else {
-          console.log('Added note!');
+      saveNotes(notes, (returnVal) => {
+        if(returnVal === true) {
+          callback(note);
         }
       });
     } else {
-      console.log('Cannot add duplicate note');
+      callback('Cannot add duplicate note');
     }
   });
 };
 
 var getAll = (callback) => {
-  fs.readFile('notes-data.json', 'utf8', (err, data) => {
-    if (err) {
-      throw err;
-    } else {
-      var notes = JSON.parse(data);
-      callback(notes);
-    }
+  fetchNotes((notes) => {
+    callback(notes);
   });
 };
 
-var getNote = (title) => {
-  fs.readFile('notes-data.json', 'utf8', (err, data) => {
-    var notes = [];
-    if (data) {
-      notes = JSON.parse(data);
-    }
-
+var getNote = (title, callback) => {
+  fetchNotes((notes) => {
     var noteToReturn = notes.filter((note) => {
-      return note.title == title;
+      return note.title === title;
     });
 
     if (noteToReturn.length === 1) {
-      console.log(noteToReturn);
+      callback(noteToReturn);
     } else if (noteToReturn.length === 0) {
-      console.log('Note not found');
+      callback('Note not found');
     } else {
-      console.log('This is a state of bad data - duplicate titles');
+      callback('This is a state of bad data - duplicate titles');
     }
   });
 }
 
-var removeNote = (title) => {
-  fs.readFile('notes-data.json', 'utf8', (err, data) => {
-    var notes = [];
-    if (data) {
-      notes = JSON.parse(data);
-    }
-
+var removeNote = (title, callback) => {
+  fetchNotes((notes) => {
     var noteToReturn = notes.filter((note) => {
       return note.title == title;
     });
 
     if (noteToReturn.length === 1) {
       notes.pop(noteToReturn);
-
-      fs.writeFile('notes-data.json', notes, (err) => {
-        if (err) {
-          throw err;
-        } else {
-          console.log('Removed note!');
+      saveNotes(notes, (returnVal) => {
+        if(returnVal === true) {
+          callback(noteToReturn[0]);
         }
       });
     } else if (noteToReturn.length === 0) {
-      console.log('Note not found');
+      callback('Note not found');
     } else {
-      console.log('This is a state of bad data - duplicate titles');
+      callback('This is a state of bad data - duplicate titles');
     }
   });
 }
