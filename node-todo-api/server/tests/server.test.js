@@ -69,24 +69,22 @@ describe('GET /todos', () => {
     .end(done);
   });
 
-  // it('should get todo by id', (done) => {
-  //   var expected = {};
-  //
-  //   Todo.find().then((todos) => {
-  //     var todo = todos[0];
-  //     expected.id = todo._id;
-  //     expected.text = todo.text;
-  //     console.log('\n\n\n', expected.id);
-  //
-  //     request(app)
-  //     .get(`/todos/${expected.id}`)
-  //     .expect(200)
-  //     .expect((res) => {
-  //       console.log(res);
-  //       expect(res.body.text.length).toNotBe(0);
-  //       expect(res.body).toInclude(expected);
-  //     })
-  //     .end(done);
-  //   }).catch((e) => done(e));
-  // });
+  it('should get todo by id', (done) => {
+    var expected = {};
+
+    Todo.find().then((todos) => {
+      var todo = todos[0];
+      expected._id = todo._id.toString();
+      expected.text = todo.text;
+
+      request(app)
+      .get(`/todos/${expected._id}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text.length).toNotBe(0);
+        expect(res.body.todo).toInclude(expected);
+      })
+      .end(done);
+    }).catch((e) => done(e));
+  });
 });
